@@ -1,12 +1,20 @@
 import type { Metadata } from 'next';
-import './globals.css';
+import { Ubuntu } from 'next/font/google';
+
 import { ThemeProvider } from '@/providers';
 import Header from '@/components/Header/Header';
+
+import './globals.css';
 
 export const metadata: Metadata = {
   title: 'DashDev',
   description: 'DashDev',
 };
+
+const ubuntu = Ubuntu({
+  subsets: ['latin'],
+  weight: '400',
+});
 
 export default function RootLayout({
   children,
@@ -15,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body className={ubuntu.className}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
