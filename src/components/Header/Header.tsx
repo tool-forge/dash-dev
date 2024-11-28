@@ -18,13 +18,17 @@ const Header = async () => {
           <ChartNetwork />
           DashDev
         </Link>
-        <Separator orientation="vertical" />
-        <NavigationMenu />
+        {session?.user?.role ? (
+          <>
+            <Separator orientation="vertical" />
+            <NavigationMenu />
+          </>
+        ) : null}
       </div>
 
       <div className="flex items-center gap-4">
         <ThemeButton />
-        {session?.user?.image && session?.user?.name ? (
+        {session?.user ? (
           <ProfileDropdown img={session.user.image} name={session.user.name} />
         ) : null}
       </div>
