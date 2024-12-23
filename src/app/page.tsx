@@ -1,5 +1,9 @@
+import { getRepos } from '@/server/repos';
+
 const Home = async () => {
-  return <main className="w-screen h-[calc(100vh-4rem)] p-12">Home</main>;
+  const repos: any[] = (await getRepos()) || [];
+
+  return <div className="p-12">HomePage</div>;
 };
 
 export default Home;

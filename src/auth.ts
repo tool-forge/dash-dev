@@ -1,38 +1,52 @@
 import NextAuth from 'next-auth';
 import GitHub from 'next-auth/providers/github';
+import { getUserByEmail } from '@/server/users';
+import { UserRoleEnum } from './models/enums';
 
 declare module 'next-auth' {
   interface Session {
-    accessToken?: string;
-  }
-}
-
-declare module '@auth/core/jwt' {
-  interface JWT {
-    accessToken?: string;
+    token?: string;
+    user?: {
+      role?: UserRoleEnum;
+      org?: string;
+      image: string;
+      name: string;
+      email: string;
+    };
   }
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [GitHub],
-  session: { strategy: 'jwt' },
+  providers: [
+    GitHub({
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      authorization: {
+        params: {
+          scope:
+            'repo repo:status read:repo_hook read:discussion security_events read:user workflow',
+        },
+      },
+    }),
+  ],
+  session: { strategy: 'jwt', maxAge: 60 * 60 * 24 },
   callbacks: {
-    authorized({ auth }) {
-      if (auth) {
-        
-      }
+    async authorized({ auth }) {
       return !!auth;
     },
-    jwt({ token, trigger, session, account }) {
-      if (trigger === 'update') token.name = session.user.name;
-      if (account?.provider === 'keycloak') {
-        return { ...token, accessToken: account.access_token };
+    jwt({ token, account }) {
+      if (account && account.access_token) {
+        token.accessToken = account.access_token;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token?.accessToken) {
-        session.accessToken = token.accessToken;
+      session.token = token.accessToken as string;
+      const user = await getUserByEmail(session.user?.email);
+
+      if (user) {
+        session.user.role = user.role;
+        session.user.org = user.org;
       }
 
       return session;
