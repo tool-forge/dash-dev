@@ -1,39 +1,64 @@
-import Link from 'next/link';
-import { ChartNetwork } from 'lucide-react';
+'use client';
 
-import { auth } from '@/auth';
-import { NavigationMenu, ProfileDropdown, ThemeButton } from './components';
-import { Separator } from '@/components';
+import React from 'react';
 
-const Header = async () => {
-  const session = await auth();
+import { usePathname } from 'next/navigation';
+import { ThemeButton } from './components';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Separator,
+  SidebarTrigger,
+} from '@/components';
+import { cn } from '@/lib/utils';
+import { routeNames } from '@/lib/routeNames';
+
+export const Header = () => {
+  const pathname = usePathname();
+
+  const routesList = pathname
+    .split('/')
+    .slice(1)
+    .map((route) => routeNames[route as keyof typeof routeNames]);
 
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between border-b bg-background h-16 p-4 px-6">
-      <div className="flex items-center gap-4 h-full">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-xl font-bold transition-colors duration-200 hover:text-primary"
-        >
-          <ChartNetwork />
-          DashDev
-        </Link>
-        {session?.user?.role ? (
-          <>
-            <Separator orientation="vertical" />
-            <NavigationMenu />
-          </>
-        ) : null}
-      </div>
+    <header className="flex bg-background h-16 shrink-0 items-center border-b gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+      <div className="flex items-center gap-2 px-4">
+        <SidebarTrigger className="-ml-1" />
+        <Separator orientation="vertical" className="mr-2 h-4" />
+        <Breadcrumb>
+          <BreadcrumbList>
+            {routesList.map((route, i) => {
+              const isLast = i === routesList.length - 1;
 
-      <div className="flex items-center gap-4">
+              return !route ? (
+                <BreadcrumbItem key={route}>
+                  <BreadcrumbPage>Home</BreadcrumbPage>
+                </BreadcrumbItem>
+              ) : (
+                <React.Fragment key={route}>
+                  <BreadcrumbItem key={route}>
+                    <BreadcrumbPage
+                      className={cn(!isLast && 'hidden md:block text-inherit')}
+                    >
+                      {route}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                  {!isLast && (
+                    <BreadcrumbSeparator className="hidden md:block" />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+      <div className="flex mr-2 justify-end flex-1">
         <ThemeButton />
-        {session?.user ? (
-          <ProfileDropdown img={session.user.image} name={session.user.name} />
-        ) : null}
       </div>
     </header>
   );
 };
-
-export default Header;
